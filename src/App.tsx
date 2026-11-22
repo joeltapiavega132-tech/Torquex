@@ -258,7 +258,7 @@ function App() {
       <div className="page-content">
         {page === 'dashboard' && <>
           <PageHeading eyebrow="Panel de operaciones" title="Todo bajo control." subtitle="Una vista clara de ventas, inventario y dinero pendiente." actions={<>{periodPicker}<button className="button button-primary" onClick={openSale}><Plus size={17} /> Nueva venta</button></>} />
-          <div className="prototype-banner"><CircleHelp size={18} /><span><strong>Entorno de prueba.</strong> Ingresa únicamente datos ficticios. La información se guarda solo en este navegador y el IVA es editable en cada venta.</span></div>
+          
           <div className="metric-grid">
             <Metric label="Ventas netas sin IVA" value={money(report.subtotal)} detail={`${report.salesCount} ventas · ${report.returnsCount} devoluciones`} icon={<ArrowUpRight size={20} />} accent="blue" />
             <Metric label="Cobrado neto" value={money(report.collected)} detail="Cobros menos reembolsos del período" icon={<ArrowDownLeft size={20} />} accent="dark" />
