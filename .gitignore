@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.local
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.netlify/
+.vercel/
+*.log
+*.json.bak
+*respaldo*.json
+Desktop.ini
+Thumbs.db
