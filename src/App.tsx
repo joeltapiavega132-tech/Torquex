@@ -250,7 +250,7 @@ function App() {
       <div className="brand"><div className="brand-wordmark"><strong>TORQUEX</strong><small>Control de repuestos</small></div><button className="mobile-close" aria-label="Cerrar menú" onClick={() => setMobileNav(false)}><X size={20} /></button></div>
       <div className="sidebar-label">Espacio de trabajo</div>
       <nav aria-label="Navegación principal">{nav.map(item => <button key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => switchPage(item.id)}><item.icon size={19} strokeWidth={1.8} /><span>{item.label}</span>{page === item.id && <span className="nav-indicator" />}</button>)}</nav>
-      <div className="sidebar-bottom"><div className="demo-status"><span className="status-dot" /><div><strong>Modo prototipo</strong><small>Prueba con datos ficticios</small></div></div><p>Esta versión guarda información solo en este navegador.</p></div>
+      <div className="sidebar-bottom"><div className="demo-status"><span className="status-dot" /><div><strong>Modo prototipo</strong><small></small></div></div></div>
     </aside>
     {mobileNav && <button className="mobile-scrim" aria-label="Cerrar menú" onClick={() => setMobileNav(false)} />}
     <main className="main-content">
