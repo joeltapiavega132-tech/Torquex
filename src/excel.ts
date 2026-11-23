@@ -54,7 +54,7 @@ export async function readXlsx(file: File): Promise<string[][]> {
   const files = unzipSync(bytes, { filter: entry => {
     if (entry.name !== 'xl/worksheets/sheet1.xml' && entry.name !== 'xl/sharedStrings.xml') return false
     expanded += entry.originalSize
-    if (expanded > 20_000_000) throw new Error('El contenido Excel es demasiado grande para este prototipo.')
+    if (expanded > 20_000_000) throw new Error('El archivo Excel supera el tamaño permitido.')
     return true
   } })
   const sheetBytes = files['xl/worksheets/sheet1.xml']

@@ -47,13 +47,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .nav-item.active { background: #4c5b62; color: #fff; font-weight: 700; }
 .nav-item.active svg { color: #F0941D; }
 .nav-indicator { margin-left: auto; width: 5px; height: 5px; border-radius: 50%; background: #F0941D; }
-.sidebar-bottom { margin-top: auto; padding: 0 10px; }
-.demo-status { border: 1px solid #617179; border-radius: 10px; padding: 12px 11px; display: flex; align-items: center; gap: 9px; }
-.status-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #F0941D; box-shadow: 0 0 0 4px #705839; }
-.demo-status strong, .demo-status small { display: block; }
-.demo-status strong { font-size: 12px; }
-.demo-status small { font-size: 10px; color: #b8c2c6; margin-top: 3px; }
-.sidebar-bottom p { color: #9fafb5; font-size: 11px; line-height: 1.55; margin: 12px 2px 0; }
 .main-content { min-width: 0; flex: 1; }
 .topbar { height: 70px; background: #fff; border-bottom: 1px solid #e5e9eb; display: flex; align-items: center; justify-content: space-between; padding: 0 38px; }
 .topbar-left, .topbar-right { display: flex; align-items: center; gap: 12px; }

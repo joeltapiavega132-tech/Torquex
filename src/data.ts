@@ -42,8 +42,6 @@ export type Store = {
   expenses: Expense[]; purchases: Purchase[]; expenseRevisions: ExpenseRevision[]; purchaseRevisions: PurchaseRevision[]; stockCounts: StockCount[]; stockMovements: StockMovement[]; audit: Audit[]
 }
 
-const KEY = 'torquex-prototype-v1' // Keep the key to preserve data from earlier versions.
-const CLEAN_START_KEY = 'torquex-clean-start-v1.5'
 export const localDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 export const today = () => localDate(new Date())
 export const uid = () => crypto.randomUUID()
@@ -99,24 +97,6 @@ export function normalizeStore(value: unknown): Store {
   }
 }
 
-export function loadStore(): Store {
-  try {
-    const clean = applyCleanStart()
-    if (clean) return clean
-    const raw = localStorage.getItem(KEY)
-    return raw ? normalizeStore(JSON.parse(raw)) : emptyStore()
-  } catch {
-    return emptyStore()
-  }
-}
-export function applyCleanStart(): Store | null {
-  if (localStorage.getItem(CLEAN_START_KEY) === 'done') return null
-  const clean = emptyStore()
-  localStorage.setItem(KEY, JSON.stringify(clean))
-  localStorage.setItem(CLEAN_START_KEY, 'done')
-  return clean
-}
-export function saveStore(store: Store) { localStorage.setItem(KEY, JSON.stringify(store)) }
 export function nextCode(products: Product[]) {
   const last = Math.max(0, ...products.map(p => Number(p.code.match(/^TX-(\d+)$/)?.[1] ?? 0)))
   return `TX-${String(last + 1).padStart(5, '0')}`
@@ -127,39 +107,6 @@ export function nextSaleNumber(sales: Sale[]) {
 }
 export function addAudit(store: Store, action: string, detail: string): Store {
   return { ...store, audit: [{ id: uid(), date: new Date().toISOString(), action, detail }, ...store.audit].slice(0, 1000) }
-}
-
-function daysAgo(days: number) { const d = new Date(); d.setDate(d.getDate() - days); return localDate(d) }
-export function demoStore(): Store {
-  const products: Product[] = [
-    { id: 'p1', code: 'TX-00001', name: 'Filtro de aceite', category: 'Filtros', brand: 'Bosch', model: 'P 3314', vehicle: 'Toyota Hilux', partType: 'Motor', compatibility: 'Hilux 2.4 / 2.8, 2016–2024', compatibilities: [{ id: 'v1', brand: 'Toyota', model: 'Hilux', engine: '2.4 / 2.8', yearFrom: 2016, yearTo: 2024, notes: 'Ejemplo' }], stock: 24, minStock: 8, cost: 8.5, price: 14.9, active: true },
-    { id: 'p2', code: 'TX-00002', name: 'Pastillas de freno delanteras', category: 'Frenos', brand: 'Brembo', model: 'P 83 153', vehicle: 'Chevrolet D-Max', partType: 'Frenos', compatibility: 'D-Max 3.0, 2015–2023', stock: 6, minStock: 10, cost: 26, price: 44, active: true },
-    { id: 'p3', code: 'TX-00003', name: 'Amortiguador delantero', category: 'Suspensión', brand: 'KYB', model: 'Excel-G', vehicle: 'Kia Sportage', partType: 'Suspensión', compatibility: 'Sportage 2017–2022', stock: 12, minStock: 5, cost: 52, price: 85, active: true },
-    { id: 'p4', code: 'TX-00004', name: 'Batería 12V 65Ah', category: 'Eléctrico', brand: 'Bosch', model: 'S4', vehicle: 'Multimarca', partType: 'Baterías', compatibility: 'Verificar bornes y dimensiones', stock: 3, minStock: 4, cost: 78, price: 118, active: true },
-    { id: 'p5', code: 'TX-00005', name: 'Correa de distribución', category: 'Motor', brand: 'Gates', model: 'PowerGrip', vehicle: 'Hyundai Tucson', partType: 'Distribución', compatibility: 'Tucson 2.0, 2016–2021', stock: 19, minStock: null, cost: 34, price: 59, active: true },
-  ]
-  const makeSale = (id: string, number: string, date: string, customer: string, product: Product, quantity: number): Sale => {
-    const subtotalCents = toCents(product.price) * quantity, vatRate = 0.15, subtotal = fromCents(subtotalCents), vatAmount = fromCents(vatCents(subtotalCents, vatRate))
-    const line: SaleLine = { id: `l-${id}`, productId: product.id, productCode: product.code, productName: product.name, quantity, unitPrice: product.price, unitCost: product.cost, vatRate, subtotal, vatAmount, total: round(subtotal + vatAmount) }
-    return { id, number, date, customer, lines: [line], subtotal, vatAmount, total: line.total, status: 'active' }
-  }
-  return {
-    products,
-    sales: [makeSale('s1', 'V-00001', daysAgo(2), 'Cliente de ejemplo A', products[0], 4), makeSale('s2', 'V-00002', daysAgo(5), 'Cliente de ejemplo B', products[1], 2), makeSale('s3', 'V-00003', daysAgo(12), 'Cliente de ejemplo C', products[2], 1)],
-    payments: [
-      { id: 'c1', saleId: 's1', date: daysAgo(2), amount: 68.54, method: 'Transferencia' },
-      { id: 'c2', saleId: 's2', date: daysAgo(4), amount: 40, method: 'Efectivo' },
-      { id: 'c3', saleId: 's3', date: daysAgo(12), amount: 97.75, method: 'Transferencia' },
-    ],
-    refunds: [], returns: [],
-    expenses: [
-      { id: 'e1', date: daysAgo(3), category: 'Logística', description: 'Flete de ejemplo', amount: 85 },
-      { id: 'e2', date: daysAgo(9), category: 'Operación', description: 'Embalaje de ejemplo', amount: 24.5 },
-    ],
-    purchases: [{ id: 'i1', date: daysAgo(6), supplier: 'Proveedor de ejemplo', productId: 'p1', productCode: 'TX-00001', productName: 'Filtro de aceite', quantity: 20, unitCost: 8.5, total: 170 }],
-    expenseRevisions: [], purchaseRevisions: [], stockCounts: [], stockMovements: [],
-    audit: [{ id: 'a1', date: new Date().toISOString(), action: 'Demo iniciada', detail: 'Datos ficticios para explorar el prototipo' }],
-  }
 }
 
 export function csvEscape(value: unknown) {

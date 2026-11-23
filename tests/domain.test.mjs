@@ -1,21 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { demoStore, emptyStore, loadStore, normalizeStore, saveStore, vatCents } from '../src/data.ts'
+import { emptyStore, normalizeStore, vatCents } from '../src/data.ts'
 import { activeExpenses, activePurchases, cancelSale, netSale, periodReport, productProfitability, receivablesAging, registerImport, registerPayment, registerRefund, registerReturn, registerSale, registerStockCount, reviseExpense, revisePurchase, saleBalance, stockValuation, validDate } from '../src/domain.ts'
 
 const product = (id, stock, price, cost) => ({ id, code: `TX-0000${id}`, name: `Pieza ${id}`, category: 'Prueba', brand: 'Marca', model: id, vehicle: 'Auto', partType: 'Motor', compatibility: '', stock, minStock: null, price, cost, active: true })
 const storeWithProducts = () => ({ ...emptyStore(), products: [product('1', 5, 10, 6), product('2', 3, 20, 12)] })
-
-test('inicio limpio borra los datos anteriores una sola vez y conserva la nueva prueba', () => {
-  const oldStorage = globalThis.localStorage, values = new Map()
-  globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }
-  try {
-    values.set('torquex-prototype-v1', JSON.stringify(demoStore()))
-    assert.deepEqual(loadStore(), emptyStore())
-    saveStore(storeWithProducts())
-    assert.equal(loadStore().products.length, 2)
-  } finally { if (oldStorage === undefined) delete globalThis.localStorage; else globalThis.localStorage = oldStorage }
-})
 
 test('recorrido del manual produce exactamente los importes esperados', () => {
   const products = [product('1', 10, 15, 8), product('2', 5, 35, 20)]
@@ -28,13 +17,6 @@ test('recorrido del manual produce exactamente los importes esperados', () => {
   assert.equal(saleBalance(store, store.sales[0]), 44.75)
   assert.deepEqual(store.products.map(p => p.stock), [12, 4])
   assert.equal(stockValuation(store), 188)
-})
-
-test('panel de demostración reconcilia ventas, IVA, costo, cobros y resultado', () => {
-  const store = demoStore(), report = periodReport(store, '')
-  assert.deepEqual([report.subtotal, report.vat, report.cogs, report.expenses, report.grossProfit, report.operatingResult, report.collected], [232.60, 34.89, 138, 109.50, 94.60, -14.90, 206.29])
-  assert.equal(store.sales.reduce((sum, sale) => sum + saleBalance(store, sale), 0), 61.20)
-  assert.equal(stockValuation(store), 1864)
 })
 
 test('IVA se redondea al centavo exacto en importes terminados en medio centavo', () => {
