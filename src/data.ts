@@ -14,6 +14,7 @@ export type Sale = {
   id: string; number: string; date: string; customer: string; lines: SaleLine[]
   subtotal: number; vatAmount: number; total: number; status: 'active' | 'cancelled'
   cancelledAt?: string; cancelReason?: string
+  createdBy?: string; createdByName?: string
 }
 export type Payment = { id: string; saleId: string; date: string; amount: number; method: string }
 export type Refund = { id: string; saleId: string; date: string; amount: number; method: string; reason: string }
@@ -22,10 +23,11 @@ export type SaleReturn = {
   productId: string; productCode: string; productName: string; unitPrice: number; unitCost: number
   vatRate: number; subtotal: number; vatAmount: number; total: number
 }
-export type Expense = { id: string; date: string; category: string; description: string; amount: number }
+export type Expense = { id: string; date: string; category: string; description: string; amount: number; createdBy?: string; createdByName?: string }
 export type Purchase = {
   id: string; date: string; supplier: string; productId: string; productCode: string
   productName: string; quantity: number; unitCost: number; total: number
+  createdBy?: string; createdByName?: string
 }
 export type ExpenseRevision = { id: string; expenseId: string; recordedAt: string; reason: string; action: 'correct' | 'void'; before: Expense; after: Expense | null }
 export type PurchaseRevision = { id: string; purchaseId: string; recordedAt: string; reason: string; action: 'correct' | 'void'; before: Purchase; after: Purchase | null }
@@ -34,7 +36,7 @@ export type StockMovement = {
   id: string; date: string; productId: string; productCode: string; delta: number
   balanceAfter: number; reason: string; source: 'sale' | 'return' | 'cancel' | 'import' | 'adjust' | 'initial' | 'count'
 }
-export type Audit = { id: string; date: string; action: string; detail: string }
+export type Audit = { id: string; date: string; action: string; detail: string; actorId?: string; actorName?: string }
 export type Store = {
   products: Product[]; sales: Sale[]; payments: Payment[]; refunds: Refund[]; returns: SaleReturn[]
   expenses: Expense[]; purchases: Purchase[]; expenseRevisions: ExpenseRevision[]; purchaseRevisions: PurchaseRevision[]; stockCounts: StockCount[]; stockMovements: StockMovement[]; audit: Audit[]

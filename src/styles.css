@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+.client-page { min-height: 100vh; background: #f4f7f8; color: #354348; display: grid; place-items: center; padding: 24px 16px; font-family: Arial, sans-serif; }
+.client-card { width: min(100%, 650px); background: white; border: 1px solid #dce4e8; border-radius: 14px; box-shadow: 0 14px 35px #35434816; padding: 30px; }
+.client-eyebrow { color: #1973ba; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.client-card h1 { font-size: 30px; margin: 14px 0 8px; }
+.client-card h2 { margin: 28px 0 12px; font-size: 18px; }
+.client-card p { line-height: 1.5; }
+.client-card label { display: block; margin: 14px 0; font-size: 13px; font-weight: 700; }
+.client-card input, .client-card select { display: block; width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid #cbd7dc; border-radius: 7px; margin-top: 6px; background: white; color: #354348; }
+.client-card button { border: 0; background: #1973ba; color: white; padding: 10px 14px; border-radius: 7px; font-weight: 700; cursor: pointer; margin: 5px 8px 5px 0; }
+.client-card button:disabled { opacity: .6; cursor: wait; }
+.client-card .client-link { color: #1973ba; background: none; padding-left: 0; }
+.client-row { border-top: 1px solid #e6ebed; padding: 12px 0; font-size: 13px; }
+.client-row select { width: auto; min-width: 145px; display: inline-block; }
+.client-row button { background: #eef4f7; color: #354348; }
+.client-notice { border-left: 4px solid #f0941d; padding: 10px 14px; background: #fff7ec; }
+.client-foot { color: #829298; font-size: 12px; margin-top: 28px; }
+.client-session-bar { min-height: 40px; background: #354348; color: white; display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 5px 20px; font-size: 12px; }
+.client-session-bar button { border: 1px solid #ffffff66; background: transparent; color: white; border-radius: 6px; padding: 6px 9px; cursor: pointer; }
+
 @theme {
   --color-torquex-white: #FFFFFF;
   --color-torquex-ink: #354348;

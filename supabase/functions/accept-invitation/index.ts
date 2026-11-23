@@ -18,10 +18,10 @@ Deno.serve(async (request) => {
     const body = await request.json()
     const token = typeof body.token === 'string' ? body.token : ''
     const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : ''
-    const password = typeof body.password === 'string' ? body.password : ''
     if (!/^[A-Za-z0-9_-]{40,50}$/.test(token)) return json({ error: 'El enlace no es válido o ya fue usado.' }, 400)
     if (displayName.length < 2 || displayName.length > 100) return json({ error: 'Escribe tu nombre completo.' }, 400)
-    if (password.length < 12 || password.length > 128) return json({ error: 'La contraseña debe tener entre 12 y 128 caracteres.' }, 400)
+    const appOrigin = Deno.env.get('APP_ORIGIN')
+    if (!appOrigin) return json({ error: 'Falta configurar el dominio de Torquex.' }, 500)
 
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
     const tokenHash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
@@ -32,11 +32,8 @@ Deno.serve(async (request) => {
     const claim = Array.isArray(claims) ? claims[0] : null
     if (claimError || !claim) return json({ error: 'El enlace venció o ya fue utilizado. Solicita una nueva invitación.' }, 400)
 
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email: claim.invite_email,
-      password,
-      email_confirm: true,
-      user_metadata: { display_name: displayName },
+    const { data: created, error: createError } = await admin.auth.admin.inviteUserByEmail(claim.invite_email, {
+      data: { display_name: displayName }, redirectTo: appOrigin,
     })
     if (createError || !created.user) return json({ error: 'No se pudo crear la cuenta. Solicita al administrador que genere un nuevo enlace.' }, 400)
 
@@ -51,7 +48,7 @@ Deno.serve(async (request) => {
       return json({ error: 'No se pudo completar el perfil. Solicita al administrador un nuevo enlace.' }, 500)
     }
     await admin.from('invitations').update({ consumed_by: created.user.id }).eq('id', claim.invitation_id)
-    return json({ message: 'Cuenta creada. Ya puedes iniciar sesión.' }, 201)
+    return json({ message: 'Revisa tu correo y usa el enlace recibido para establecer la contraseña.', email: claim.invite_email }, 201)
   } catch {
     return json({ error: 'No se pudo completar el registro.' }, 400)
   }

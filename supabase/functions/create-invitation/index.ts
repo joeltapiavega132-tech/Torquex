@@ -20,7 +20,7 @@ Deno.serve(async (request) => {
     const url = Deno.env.get('SUPABASE_URL')!
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const caller = createClient(url, anonKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false } })
-    const { data: { user }, error: userError } = await caller.auth.getUser()
+    const { data: { user }, error: userError } = await caller.auth.getUser(authorization.slice(7))
     if (userError || !user) return json({ error: 'La sesión no es válida.' }, 401)
     const { data: profile, error: profileError } = await caller.from('profiles').select('role,active').eq('user_id', user.id).maybeSingle()
     if (profileError || !profile?.active || profile.role !== 'admin') return json({ error: 'Solo un administrador activo puede crear invitaciones.' }, 403)

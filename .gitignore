@@ -24,5 +24,6 @@ coverage/
 supabase/.temp/
 supabase/.branches/
 .supabase/
+.deno-cache/
 Desktop.ini
 Thumbs.db

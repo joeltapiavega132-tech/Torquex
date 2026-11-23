@@ -3,12 +3,12 @@ import { downloadXlsx, readXlsx } from './excel.ts'
 import { activeExpenses, activePurchases, netPaid, netSale, returnedQuantity, saleBalance } from './domain.ts'
 
 export const productHeaders = ['codigo', 'nombre', 'categoria', 'marca', 'modelo', 'vehiculo', 'tipo_pieza', 'compatibilidad', 'stock', 'stock_minimo', 'costo', 'precio', 'estado', 'compatibilidades_detalle']
-export const salesHeaders = ['numero', 'fecha', 'estado', 'cliente', 'codigo_producto', 'producto', 'cantidad', 'devuelto', 'precio_unitario', 'costo_unitario', 'tasa_iva', 'subtotal_original', 'iva_original', 'total_original', 'total_neto_venta', 'cobrado_neto', 'saldo']
+export const salesHeaders = ['numero', 'fecha', 'estado', 'cliente', 'codigo_producto', 'producto', 'cantidad', 'devuelto', 'precio_unitario', 'costo_unitario', 'tasa_iva', 'subtotal_original', 'iva_original', 'total_original', 'total_neto_venta', 'cobrado_neto', 'saldo', 'registrado_por']
 export function productRows(products: Product[]): (string | number | null)[][] {
   return products.map(p => [p.code, p.name, p.category, p.brand, p.model, p.vehicle, p.partType, p.compatibility, p.stock, p.minStock, p.cost, p.price, p.active ? 'activo' : 'archivado', JSON.stringify(p.compatibilities ?? [])])
 }
 export function salesRows(store: Store): (string | number | null)[][] {
-  return store.sales.flatMap((sale: Sale) => sale.lines.map((line, index) => [sale.number, sale.date, sale.status === 'cancelled' ? 'anulada' : 'activa', sale.customer, line.productCode, line.productName, line.quantity, returnedQuantity(store, line.id), line.unitPrice, line.unitCost, line.vatRate * 100, line.subtotal, line.vatAmount, line.total, index === 0 ? netSale(store, sale).total : null, index === 0 ? netPaid(store, sale.id) : null, index === 0 ? saleBalance(store, sale) : null]))
+  return store.sales.flatMap((sale: Sale) => sale.lines.map((line, index) => [sale.number, sale.date, sale.status === 'cancelled' ? 'anulada' : 'activa', sale.customer, line.productCode, line.productName, line.quantity, returnedQuantity(store, line.id), line.unitPrice, line.unitCost, line.vatRate * 100, line.subtotal, line.vatAmount, line.total, index === 0 ? netSale(store, sale).total : null, index === 0 ? netPaid(store, sale.id) : null, index === 0 ? saleBalance(store, sale) : null, sale.createdByName ?? '']))
 }
 export function exportCatalog(store: Store, format: 'csv' | 'xlsx') {
   const rows = productRows(store.products)
@@ -21,14 +21,14 @@ export function exportSales(store: Store, format: 'csv' | 'xlsx') {
   else downloadXlsx('torquex-ventas.xlsx', 'Ventas', salesHeaders, rows)
 }
 export function exportExpenses(store: Store, format: 'csv' | 'xlsx') {
-  const headers = ['fecha', 'categoria', 'descripcion', 'monto', 'estado', 'correcciones']
-  const rows = store.expenses.map(original => { const current = activeExpenses(store).find(e => e.id === original.id); return [current?.date ?? original.date, current?.category ?? original.category, current?.description ?? original.description, current?.amount ?? 0, current ? 'vigente' : 'anulado', store.expenseRevisions.filter(r => r.expenseId === original.id).length] })
+  const headers = ['fecha', 'categoria', 'descripcion', 'monto', 'estado', 'correcciones', 'registrado_por']
+  const rows = store.expenses.map(original => { const current = activeExpenses(store).find(e => e.id === original.id); return [current?.date ?? original.date, current?.category ?? original.category, current?.description ?? original.description, current?.amount ?? 0, current ? 'vigente' : 'anulado', store.expenseRevisions.filter(r => r.expenseId === original.id).length, original.createdByName ?? ''] })
   if (format === 'csv') downloadCsv('torquex-gastos.csv', headers, rows)
   else downloadXlsx('torquex-gastos.xlsx', 'Gastos', headers, rows)
 }
 export function exportPurchases(store: Store, format: 'csv' | 'xlsx') {
-  const headers = ['fecha', 'proveedor', 'codigo_producto', 'producto', 'cantidad', 'costo_unitario', 'total', 'estado', 'correcciones']
-  const rows = store.purchases.map(original => { const current = activePurchases(store).find(p => p.id === original.id); const p = current ?? original; return [p.date, p.supplier, p.productCode, p.productName, current?.quantity ?? 0, p.unitCost, current?.total ?? 0, current ? 'vigente' : 'anulado', store.purchaseRevisions.filter(r => r.purchaseId === original.id).length] })
+  const headers = ['fecha', 'proveedor', 'codigo_producto', 'producto', 'cantidad', 'costo_unitario', 'total', 'estado', 'correcciones', 'registrado_por']
+  const rows = store.purchases.map(original => { const current = activePurchases(store).find(p => p.id === original.id); const p = current ?? original; return [p.date, p.supplier, p.productCode, p.productName, current?.quantity ?? 0, p.unitCost, current?.total ?? 0, current ? 'vigente' : 'anulado', store.purchaseRevisions.filter(r => r.purchaseId === original.id).length, original.createdByName ?? ''] })
   if (format === 'csv') downloadCsv('torquex-entradas.csv', headers, rows)
   else downloadXlsx('torquex-entradas.xlsx', 'Entradas', headers, rows)
 }
