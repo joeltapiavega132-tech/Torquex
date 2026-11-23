@@ -1,5 +1,7 @@
 # Torquex 1.5 · prueba limpia previa a la base de datos
 
+> **V2 en desarrollo.** La demo pública y la entrega vacía del cliente serán instalaciones independientes. Consulta [`docs/v2-arquitectura-y-pendientes.md`](docs/v2-arquitectura-y-pendientes.md) para ver el alcance de acceso por invitación, atribución de acciones, configuración aislada y lo que aún falta antes de usar datos reales. Las migraciones y funciones de invitación preparadas para V2 todavía no están conectadas a un proyecto Supabase.
+
 Sistema de prueba para una importadora de repuestos, construido con React, TypeScript, Vite y Tailwind. **Sigue siendo un prototipo local:** guarda la información en el navegador y no debe contener operaciones reales.
 
 ## Ejecutar y comprobar
