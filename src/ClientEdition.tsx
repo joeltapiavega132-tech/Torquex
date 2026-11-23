@@ -17,12 +17,14 @@ export function ClientEdition() {
   const [screen, setScreen] = useState<Screen>(() => location.hash.startsWith('#invite=') ? 'accept' : 'login')
   const [token] = useState(() => location.hash.startsWith('#invite=') ? location.hash.slice(8) : '')
   const [emailInvite] = useState(() => location.hash.includes('type=invite'))
+  const [recoveryLink] = useState(() => location.hash.includes('type=recovery'))
   const [session, setSession] = useState<Session | null>(null)
   const [member, setMember] = useState<Member | null>(null)
   const [team, setTeam] = useState<Member[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [name, setName] = useState('')
   const [role, setRole] = useState<Role>('ventas')
   const [inviteLink, setInviteLink] = useState('')
@@ -40,10 +42,10 @@ export function ClientEdition() {
     const { data } = db.auth.onAuthStateChange((event, next) => {
       setSession(next)
       if (event === 'PASSWORD_RECOVERY') setScreen('password')
-      if (event === 'SIGNED_IN' && emailInvite) setScreen('password')
+      if (event === 'SIGNED_IN' && (emailInvite || recoveryLink)) setScreen('password')
     })
     return () => data.subscription.unsubscribe()
-  }, [token, emailInvite])
+  }, [token, emailInvite, recoveryLink])
 
   useEffect(() => {
     if (!db || !session) { setMember(null); return }
@@ -99,11 +101,14 @@ export function ClientEdition() {
         if (error) throw error
         setNotice('Si existe una cuenta con ese correo, llegará un enlace de recuperación.')
       } else {
+        if (!session) throw new Error('El enlace aún no ha iniciado sesión. Vuelve a abrirlo desde el correo.')
+        if (password !== passwordConfirm) throw new Error('Las contraseñas no coinciden.')
         const { error } = await db.auth.updateUser({ password })
         if (error) throw error
-        setScreen('login'); setNotice('Contraseña actualizada.')
+        await db.auth.signOut()
+        setScreen('login'); setNotice('Contraseña guardada. Inicia sesión con la nueva contraseña.')
       }
-      setPassword('')
+      setPassword(''); setPasswordConfirm('')
     } catch (error) { setNotice(error instanceof Error ? error.message : 'No se pudo completar la operación.') }
     finally { setBusy(false) }
   }
@@ -134,7 +139,7 @@ export function ClientEdition() {
   }
 
   if (db && session && member?.active && showApp && appState) return <>
-    <div className="client-session-bar"><span>{member.display_name} · {member.role}</span><button onClick={() => setShowApp(false)}>Equipo y cuenta</button><button onClick={() => void db.auth.signOut()}>Cerrar sesión</button></div>
+    <div className="client-session-bar"><span>{member.display_name} · {member.role}</span><button onClick={() => setShowApp(false)}>Equipo y cuenta</button><button onClick={() => { setShowApp(false); setScreen('password') }}>Crear o cambiar contraseña</button><button onClick={() => void db.auth.signOut()}>Cerrar sesión</button></div>
     <Suspense fallback={<main className="client-page"><section className="client-card"><p>Abriendo Torquex…</p></section></main>}><App remote={{ initial: appState, commit: commitRemote }} /></Suspense>
   </>
 
@@ -142,11 +147,12 @@ export function ClientEdition() {
     <small className="client-eyebrow">TORQUEX · V2.2</small>
     {!db && <><h1>Configuración pendiente</h1><p>Faltan la URL y la clave pública de Supabase.</p></>}
     {db && (!session || screen === 'password') && <><h1>{screen === 'accept' ? 'Activa tu invitación' : screen === 'recover' ? 'Recuperar acceso' : screen === 'password' ? 'Nueva contraseña' : 'Iniciar sesión'}</h1>
-      <p>Solo personas invitadas pueden crear una cuenta.</p>
+      <p>{screen === 'password' ? 'Escribe una contraseña nueva para tu cuenta.' : 'Solo personas invitadas pueden crear una cuenta.'}</p>
       <form onSubmit={submit}>
         {screen === 'accept' && <label>Nombre completo<input required minLength={2} value={name} onChange={e => setName(e.target.value)} /></label>}
         {(screen === 'login' || screen === 'recover') && <label>Correo<input type="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>}
         {screen !== 'recover' && screen !== 'accept' && <label>Contraseña<input type="password" required minLength={screen === 'login' ? 1 : 12} autoComplete={screen === 'login' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} /></label>}
+        {screen === 'password' && <label>Confirmar contraseña<input type="password" required minLength={12} autoComplete="new-password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} /></label>}
         <button disabled={busy}>{busy ? 'Procesando…' : screen === 'accept' ? 'Enviar invitación a mi correo' : screen === 'recover' ? 'Enviar enlace' : screen === 'password' ? 'Guardar contraseña' : 'Entrar'}</button>
       </form>
       {screen === 'login' && <button className="client-link" onClick={() => setScreen('recover')}>Olvidé mi contraseña</button>}
@@ -156,6 +162,7 @@ export function ClientEdition() {
       {!member?.active ? <p>La cuenta aún no tiene acceso activo.</p> : <>
         <p>Rol: <strong>{member.role}</strong>. Los movimientos se guardan para el equipo.</p>
         <button disabled={!appState} onClick={() => setShowApp(true)}>{appState ? 'Abrir Torquex' : 'Cargando operaciones…'}</button>
+        <button onClick={() => { setNotice(''); setScreen('password') }}>Crear o cambiar contraseña</button>
         {member.role === 'admin' && appState && <button onClick={() => downloadBackup(appState)}>Descargar respaldo</button>}
         {member.role === 'admin' && <><h2>Invitar persona</h2>
           <form onSubmit={invite}><label>Correo<input type="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
